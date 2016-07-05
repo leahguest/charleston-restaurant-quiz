@@ -35,6 +35,7 @@ function yelpSearch(paramObject, callback) {
     var url = 'http://api.yelp.com/v2/search';
     var jsonpCallback = 'jsonp_callback_' + Math.round(100000 * Math.random());
     var params = {
+        location: 'Charleston',
         callback: jsonpCallback,
         oauth_consumer_key: 'h-wltn89ScE47v6id4hqcA', // CONSUMER KEY HERE
         oauth_token: 'MV3lPZmAX5akX2MCTG7y4nVUdaWETxAA', // TOKEN HERE
@@ -55,25 +56,337 @@ function yelpSearch(paramObject, callback) {
     jsonp(url, jsonpCallback, callback);
 }
 
+
 var header = document.querySelector('#header');
 
-yelpSearch({
-	location: 'charleston,sc',
-	term: 'vegetarian',
-	radius: '10'
-}, function createItems(data){
-		var elements = data.businesses.map(function(item) {
-			var li = document.createElement('li');
-			li.textContent = item.name;
-			li.addEventListener('click', function() {
-				header.setAttribute('src', item.image_url);
-				// description.innerHTML = item.image_url;
-			});
+// yelpSearch({
+// 	location: 'charleston,sc',
+// 	term: 'vegetarian',
+// 	radius: '10'
+// }, function createItems(data){
+// 		var elements = data.businesses.map(function(item) {
+// 			var li = document.createElement('li');
+// 			li.textContent = item.name;
+// 			li.addEventListener('click', function() {
+// 				header.setAttribute('src', item.image_url);
+// 				// description.innerHTML = item.image_url;
+// 			});
 
-			return li;
-		});
+// 			return li;
+// 		});
 
-		elements.forEach(function(li) {
-			document.body.appendChild(li);
-		});
-	});
+// 		elements.forEach(function(li) {
+// 			document.body.appendChild(li);
+// 		});
+// 	});
+
+
+
+
+//Eric helped me write out a basic template to work through this weekend... so this is just a rough outline below ---Bolling 7/1/16
+/**
+ * Base View constructor
+ */
+
+function View (data, tagName) {
+    this.el = document.createElement(tagName || 'div');
+    this.data = data;
+}
+
+// Stub methods.
+// A view should render its children and bind any event listeners it needs.
+View.prototype.render = function () {};
+View.prototype.bindEvents = function () {};
+
+// PersonView
+
+// var data = [
+//     { id: 1, name: 'Bolling' },
+//     { id: 2, name: 'John' }
+// ];
+
+// function PersonView (personObj) {
+//     View.call(this, personObj, 'li');
+// }
+
+// PersonView.prototype.render = function () {
+//     this.el.innerHTML = '<span>' + this.data.name + '</span>';
+// };
+
+// PersonView.prototype.bindEvents = function () {
+//     var _this = this;
+//     this.el.addEventListener('click', function () {
+//         // Finding the object in the global `data` array with the same
+//         // id that `this.data` has.
+//         var item = data.find(function (person) {
+//             return person.id === _this.data.id;
+//         });
+//         // Find the index of that object.
+//         var index = data.indexOf(item);
+//         // Remove the object.
+//         data.splice(item, 1);
+//         // Destroy self.
+//         _this.el.parentElement.removeChild(_this.el);
+//     });
+// };
+
+// var pv = new PersonView(data[0]);
+// var pv2 = new PersonView(data[1]);
+
+// pv.render();
+// pv2.render();
+
+// document.body.appendChild(pv.el);
+// document.body.appendChild(pv2.el);
+
+/**
+ * App View constructor
+ * Instances of AppView should
+ *      - Be created with question data (array)
+ *      - Generate a QuestionView for each question
+ *      - Perform a request when all questions have been answered
+ */
+
+function AppView (questions) {
+    View.call(this, questions, 'main');
+    // Every time a question is answered, it should increment the AppView's answered property.
+    // Once this.answered == questions.length, you should run the `this.submit()` function
+    this.current = 0;
+    this.params = {};
+}
+
+AppView.prototype = Object.create(View.prototype);
+
+AppView.prototype.render = function () {
+    var questionView;
+    var questionList;
+    
+    // Insert template
+    this.el.innerHTML = `
+        <ul class="questions"></ul>
+        <div class="results"></div>
+        <button>Next</button>
+    `;
+
+    // Find that newly generated .questions list
+    questionList = this.el.querySelector('.questions');
+
+    for (var i = 0; i < this.data.length; i++) {
+        questionView = new QuestionView(this.data[i], this.answer.bind(this));
+        questionView.render();
+        questionList.appendChild(questionView.el);
+    }
+
+    questionList.children[0].classList.add('is-active');
+
+    this.bindEvents();
+};
+
+AppView.prototype.answer = function (key, value) {
+    // Add the corresponding parameter and value to the appview params object.
+    this.params[key] = value;
+};
+
+AppView.prototype.submit = function () {
+    var _this = this;
+    // Serialize this.params to a querystring (e.g. ?location=Columbia,SC&term=spaghetti&term=meatballs)
+    // Do the request, show the results in this.el.querySelector('.results')
+    // var showResults = this.el.querySelector('.results');
+    // showResults.addEventListener('click', function () {
+        yelpSearch(_this.params, function createItems(data){
+            var elements = data.businesses.map(function(item) {
+                var li = document.createElement('li');
+                li.textContent = item.name;
+                li.addEventListener('click', function() {
+                    header.setAttribute('src', item.image_url);
+                    // description.innerHTML = item.image_url;
+                });
+
+                return li;
+             });
+
+             elements.forEach(function(li) {
+                 document.body.appendChild(li);
+             });
+        });
+    // });
+}
+
+
+AppView.prototype.bindEvents = function () {
+    var _this = this;
+    // Set up event listeners for this element
+    // e.g. Listen for the `'click'` event on <button> and do something
+    var nextButton = this.el.querySelector('button');
+    var questionList = this.el.querySelector('.questions').children;
+
+    nextButton.addEventListener('click', function () {
+        // hide current
+        questionList[_this.current].classList.remove('is-active');
+
+        if (_this.current === _this.data.length - 1) {
+            _this.submit();
+        } else {
+            // increment current
+            _this.current++;
+            // show next
+            questionList[_this.current].classList.add('is-active');
+        }
+    });
+};
+
+/**
+ * Question View constructor
+ * Instances of QuestionView should
+ *      - Display the question text
+ *      - Display the potential answers
+ *      - Respond when user clicks on answer by telling the AppView
+ */
+
+function QuestionView (question, answer) {
+    View.call(this, question, 'li');
+    this.answer = answer;
+}
+
+QuestionView.prototype.render = function () {
+    this.el.innerHTML = `
+        <h3>${this.data.text}</h3>
+        <div class="answers"></div>
+    `;
+    
+    var answersList = this.el.querySelector('.answers');
+    var answer;
+
+    for (var i = 0; i < this.data.answers.length; i++) {
+        answer = document.createElement('div');
+        answerImage = document.createElement('img');
+        answerImage.setAttribute('src', this.data.answers[i].img);
+        answerText = document.createElement('p');
+        answerText.textContent = this.data.answers[i].text;
+        answer.classList.add('answer');
+        answer.dataset.queryKey = this.data.answers[i].queryKey;
+        answer.dataset.queryValue = this.data.answers[i].queryValue;
+        answer.appendChild(answerImage);
+        answer.appendChild(answerText);
+        answersList.appendChild(answer);
+    }
+
+    this.bindEvents();
+};
+
+QuestionView.prototype.bindEvents = function () {
+    var _this = this;
+    this.el.addEventListener('click', function (e) {
+        var target = e.target;
+        var question;
+        var select = document.querySelector('.answer > img');
+        select.classList.add('selected');
+        if (target.matches('.answer > img')) {
+            question = target.parentElement;
+            // this.answer comes from the AppView that created the QuestionView
+            _this.answer(question.dataset.queryKey, question.dataset.queryValue);
+        }
+    });
+};
+
+var questions = [
+    // QuestionView will take one of these objects and render it as DOM (h3, img, etc)
+    {
+        image: 'images/treasure-map.png',
+        text: 'What\'s your radius?',
+        answers: [
+            {
+                'img': 'images/waiting.jpg',
+                'text': 'You don\'t have time to waste time!',
+                'queryKey': 'radius_filter',
+                'queryValue': '8046'
+            },
+            {
+                'img': 'images/yellow.jpg',
+                'text': 'You walk everywhere--Always looking for that potential photo op',
+                'queryKey': 'radius_filter',
+                'queryValue': '1609'
+            }
+        ]
+    },
+    {
+        image: 'images/plane.jpg',
+        text: 'Where in the world do you want to travel right now...',
+        answers: [
+            {
+                'img':'images/beach.jpg',
+                'text': 'Carribean',
+                'queryKey': 'category_filter',
+                'queryValue': 'mediterranean'
+            },
+            {
+                'img': 'images/chinese-lantern.jpg',
+                'text': 'Asian countries',
+                'queryKey': 'category_filter',
+                'queryValue': 'chinese'
+            },
+            {
+                'img': 'images/italy.png',
+                'text': 'Italy',
+                'queryKey': 'category_filter',
+                'queryValue': 'italian'
+            },
+            {
+                'img': 'images/liberty.jpg',
+                'text': 'American',
+                'queryKey': 'category_filter',
+                'queryValue': 'newamerican'
+            }           
+        ]
+    },
+    {
+        image: 'images/vs.png',
+        text: 'Are you a meat lover?',
+        answers: [
+            {
+                'img':'images/cow.jpg',
+                'text': 'Heck yes!',
+                'queryKey': 'term',
+                'queryValue': 'burger'
+            },
+            {
+                'img': 'images/field.jpg',
+                'text': 'The word meat is offensive to me',
+                'queryKey': 'term',
+                'queryValue': 'vegetarian'
+            }       
+        ]
+    },
+    {
+        image: 'images/indecision.jpg',
+        text: 'Do you consider yourself indecisive?',
+        answers: [
+            {
+                'img':'images/choice.jpg',
+                'text': 'Definitely not! You always choose success.',
+                'queryKey': 'limit',
+                'queryValue': '1'
+            },
+            {
+                'img': 'images/sign.jpg',
+                'text': 'MM good question...',
+                'queryKey': 'limit',
+                'queryValue': '20'
+            },
+            {
+                'img': 'images/road.png',
+                'text': 'Somtimes, depends on the question.',
+                'queryKey': 'limit',
+                'queryValue': '10'
+            }           
+        ],      
+    }
+];
+
+var appView = new AppView(questions);
+
+// Call the render function. All views should have a render function that "kicks them off"
+appView.render();
+
+document.body.appendChild(appView.el);
+
