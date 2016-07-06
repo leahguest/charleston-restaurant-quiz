@@ -279,17 +279,17 @@ var questions = [
     // QuestionView will take one of these objects and render it as DOM (h3, img, etc)
     {
         image: 'images/treasure-map.png',
-        text: 'What\'s your radius?',
+        text: 'Are you more likely to...',
         answers: [
             {
                 'img': 'images/rear-mirror.jpg',
-                'text': 'You don\'t have time to waste time!',
+                'text': 'Drive until your heart\'s content.',
                 'queryKey': 'radius_filter',
                 'queryValue': '8046'
             },
             {
                 'img': 'images/yellow.jpg',
-                'text': 'You walk everywhere--Always looking for that potential photo op',
+                'text': 'Walk everywhere--Always looking for that potential photo op.',
                 'queryKey': 'radius_filter',
                 'queryValue': '1609'
             }
@@ -297,17 +297,17 @@ var questions = [
     },
     {
         image: 'images/plane.jpg',
-        text: 'Where in the world do you want to travel right now...',
+        text: 'Where in the world is Carmen Sandiago (that\'s YOU)????',
         answers: [
             {
                 'img':'images/beach.jpg',
-                'text': 'Carribean',
+                'text': 'Greece',
                 'queryKey': 'category_filter',
                 'queryValue': 'mediterranean'
             },
             {
                 'img': 'images/chinese-lantern.jpg',
-                'text': 'Asian countries',
+                'text': 'China',
                 'queryKey': 'category_filter',
                 'queryValue': 'chinese'
             },
@@ -319,7 +319,7 @@ var questions = [
             },
             {
                 'img': 'images/liberty.jpg',
-                'text': 'American',
+                'text': '\'Merica',
                 'queryKey': 'category_filter',
                 'queryValue': 'newamerican'
             }           
@@ -331,13 +331,13 @@ var questions = [
         answers: [
             {
                 'img':'images/cow.jpg',
-                'text': 'Heck yes!',
+                'text': 'I love meat.  Meat, meat, meat.',
                 'queryKey': 'term',
                 'queryValue': 'food'
             },
             {
                 'img': 'images/field.jpg',
-                'text': 'The word meat is offensive to me',
+                'text': 'The word meat is offensive to me.',
                 'queryKey': 'term',
                 'queryValue': 'vegetarian'
             }       
@@ -345,23 +345,23 @@ var questions = [
     },
     {
         image: 'images/indecision.jpg',
-        text: 'Do you consider yourself indecisive?',
+        text: 'How long would you say you take to make a decision?',
         answers: [
             {
                 'img':'images/choice.jpg',
-                'text': 'Definitely not! You always choose success.',
+                'text': 'Right Away',
                 'queryKey': 'limit',
                 'queryValue': '1'
             },
             {
                 'img': 'images/sign.jpg',
-                'text': 'MM good question...',
+                'text': 'A SOLID couple of days',
                 'queryKey': 'limit',
                 'queryValue': '20'
             },
             {
                 'img': 'images/road.png',
-                'text': 'Somtimes, depends on the question.',
+                'text': 'Depends on the question.',
                 'queryKey': 'limit',
                 'queryValue': '10'
             }           
