@@ -59,28 +59,6 @@ function yelpSearch(paramObject, callback) {
 
 var header = document.querySelector('#header');
 
-// yelpSearch({
-// 	location: 'charleston,sc',
-// 	term: 'vegetarian',
-// 	radius: '10'
-// }, function createItems(data){
-// 		var elements = data.businesses.map(function(item) {
-// 			var li = document.createElement('li');
-// 			li.textContent = item.name;
-// 			li.addEventListener('click', function() {
-// 				header.setAttribute('src', item.image_url);
-// 				// description.innerHTML = item.image_url;
-// 			});
-
-// 			return li;
-// 		});
-
-// 		elements.forEach(function(li) {
-// 			document.body.appendChild(li);
-// 		});
-// 	});
-
-
 
 
 //Eric helped me write out a basic template to work through this weekend... so this is just a rough outline below ---Bolling 7/1/16
@@ -98,46 +76,6 @@ function View (data, tagName) {
 View.prototype.render = function () {};
 View.prototype.bindEvents = function () {};
 
-// PersonView
-
-// var data = [
-//     { id: 1, name: 'Bolling' },
-//     { id: 2, name: 'John' }
-// ];
-
-// function PersonView (personObj) {
-//     View.call(this, personObj, 'li');
-// }
-
-// PersonView.prototype.render = function () {
-//     this.el.innerHTML = '<span>' + this.data.name + '</span>';
-// };
-
-// PersonView.prototype.bindEvents = function () {
-//     var _this = this;
-//     this.el.addEventListener('click', function () {
-//         // Finding the object in the global `data` array with the same
-//         // id that `this.data` has.
-//         var item = data.find(function (person) {
-//             return person.id === _this.data.id;
-//         });
-//         // Find the index of that object.
-//         var index = data.indexOf(item);
-//         // Remove the object.
-//         data.splice(item, 1);
-//         // Destroy self.
-//         _this.el.parentElement.removeChild(_this.el);
-//     });
-// };
-
-// var pv = new PersonView(data[0]);
-// var pv2 = new PersonView(data[1]);
-
-// pv.render();
-// pv2.render();
-
-// document.body.appendChild(pv.el);
-// document.body.appendChild(pv2.el);
 
 /**
  * App View constructor
@@ -163,12 +101,23 @@ AppView.prototype.render = function () {
     
     // Insert template
     this.el.innerHTML = `
-        <ul class="questions"></ul>
-        <div class="results"></div>
-        <button id="next">Next</button>
+        <div id="splash">
+            <img src="images/bellyfeedmockup.png">
+            <button id="start">Start the quiz!</button>
+        </div>
+        <div id="quiz">
+            <ul class="questions"></ul>
+            <div class="results"></div>
+            <button id="next" class="cf is-active">Next</button>
+        </div>
     `;
 
     // Find that newly generated .questions list
+    // var logo = document.createElement('img');
+    // logo.setAttribute('src', 'images/bellyfeedmockup.png');
+    // var splash = document.getElementById('splash');
+    // splash.appendChild(logo);
+
     questionList = this.el.querySelector('.questions');
 
     for (var i = 0; i < this.data.length; i++) {
@@ -178,6 +127,7 @@ AppView.prototype.render = function () {
     }
 
     questionList.children[0].classList.add('is-active');
+    questionList.children[3].classList.add('three-options')
 
     this.bindEvents();
 };
@@ -195,18 +145,34 @@ AppView.prototype.submit = function () {
     // showResults.addEventListener('click', function () {
         yelpSearch(_this.params, function createItems(data){
             var elements = data.businesses.map(function(item) {
-                var li = document.createElement('li');
-                li.textContent = item.name;
-                li.addEventListener('click', function() {
-                    header.setAttribute('src', item.image_url);
+                var div = document.createElement('div');
+                var picture = document.createElement('img');
+                var address = document.createElement('p');
+                var city = document.createElement('p');
+                var rating = document.createElement('img');
+                div.innerHTML = '<h4>' + item.name + '</h4>'; 
+                picture.setAttribute('src', item.image_url);
+                picture.classList.add('cf');
+                rating.setAttribute('id', 'rating');
+                rating.setAttribute('src', item.rating_img_url);
+                address.textContent = item.location.address[0];
+                city.textContent = item.location.city + ', ' + item.location.state_code + ' ' + item.location.postal_code ;
                     // description.innerHTML = item.image_url;
-                });
+                div.appendChild(rating);
+                div.appendChild(picture);
+                div.appendChild(address);
+                div.appendChild(city);
 
-                return li;
+                return div;
              });
 
-             elements.forEach(function(li) {
-                 document.body.appendChild(li);
+            var results = document.querySelector('.results');
+            var resultsIntro = document.createElement('h2');
+            resultsIntro.textContent = 'Here is where you should eat tonight!'
+             results.appendChild(resultsIntro);
+             elements.forEach(function(div) {
+                
+                results.appendChild(div);
              });
         });
     // });
@@ -217,15 +183,30 @@ AppView.prototype.bindEvents = function () {
     var _this = this;
     // Set up event listeners for this element
     // e.g. Listen for the `'click'` event on <button> and do something
-    var nextButton = this.el.querySelector('button');
+    var nextButton = this.el.querySelector('#next');
     var questionList = this.el.querySelector('.questions').children;
+
+    var splash = this.el.querySelector('#splash');
+    var quiz = this.el.querySelector('#quiz');
+    var startButton = this.el.querySelector('#start');
+
+    startButton.addEventListener('click', function () {
+        splash.classList.add('inactive');
+        quiz.classList.add('active');
+    });
 
     nextButton.addEventListener('click', function () {
         // hide current
         questionList[_this.current].classList.remove('is-active');
 
+        if (_this.current === _this.data.length - 2) {
+            nextButton.textContent = 'Submit';
+        }
+
         if (_this.current === _this.data.length - 1) {
+            nextButton.classList.remove('is-active');
             _this.submit();
+            
         } else {
             // increment current
             _this.current++;
@@ -278,15 +259,18 @@ QuestionView.prototype.bindEvents = function () {
     var _this = this;
     this.el.addEventListener('click', function (e) {
         var target = e.target;
+        var children;
         var question;
         if (target.matches('.answer > img')) {
+            children = _this.el.querySelectorAll('.answer > img');
+            for (var i = 0; i < children.length; i++) {
+                children[i].classList.remove('selected');
+            }
             target.classList.add('selected');
             question = target.parentElement;
 
             // this.answer comes from the AppView that created the QuestionView
             _this.answer(question.dataset.queryKey, question.dataset.queryValue);
-        } else {
-            target.classList.remove('selected');
         }
     });
 };
@@ -298,7 +282,7 @@ var questions = [
         text: 'What\'s your radius?',
         answers: [
             {
-                'img': 'images/waiting.jpg',
+                'img': 'images/rear-mirror.jpg',
                 'text': 'You don\'t have time to waste time!',
                 'queryKey': 'radius_filter',
                 'queryValue': '8046'
