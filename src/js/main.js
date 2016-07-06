@@ -165,7 +165,7 @@ AppView.prototype.render = function () {
     this.el.innerHTML = `
         <ul class="questions"></ul>
         <div class="results"></div>
-        <button>Next</button>
+        <button id="next">Next</button>
     `;
 
     // Find that newly generated .questions list
@@ -279,12 +279,14 @@ QuestionView.prototype.bindEvents = function () {
     this.el.addEventListener('click', function (e) {
         var target = e.target;
         var question;
-        var select = document.querySelector('.answer > img');
-        select.classList.add('selected');
         if (target.matches('.answer > img')) {
+            target.classList.add('selected');
             question = target.parentElement;
+
             // this.answer comes from the AppView that created the QuestionView
             _this.answer(question.dataset.queryKey, question.dataset.queryValue);
+        } else {
+            target.classList.remove('selected');
         }
     });
 };
@@ -347,7 +349,7 @@ var questions = [
                 'img':'images/cow.jpg',
                 'text': 'Heck yes!',
                 'queryKey': 'term',
-                'queryValue': 'burger'
+                'queryValue': 'food'
             },
             {
                 'img': 'images/field.jpg',
